@@ -13,8 +13,7 @@
 
     body {
       font-family: 'Arial', sans-serif;
-      background: url('https://images.unsplash.com/photo-1589829545856-d10d557cf95f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80') no-repeat center center fixed;
-      background-size: cover;
+      background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
       color: #fff;
       text-align: center;
       min-height: 100vh;
@@ -24,21 +23,10 @@
       align-items: center;
     }
 
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      z-index: -1;
-    }
-
     .game-container {
       max-width: 900px;
       width: 100%;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0, 0, 0, 0.7);
       border-radius: 20px;
       padding: 30px;
       backdrop-filter: blur(10px);
@@ -758,7 +746,6 @@
     let isSpinning = false;
     let winAnimationActive = false;
     let attackMode = 1;
-    let audioContext = null;
     let currentDifficulty = 6; // Uniquement 6 symboles
     let isFastMode = false;
     let lastWinningSymbol = null;
@@ -770,16 +757,12 @@
     const symbolTypes = [
       { 
         type: 'ghost', 
-        image: 'https://i.ibb.co/mCX08Ky7/ghost.png', 
-        alt: '👻',
         name: 'Fantôme',
         emoji: '👻',
         colorClass: 'symbol-ghost'
       },
       { 
         type: 'cross', 
-        image: 'https://i.ibb.co/mCJBKjwK/cross.png', 
-        alt: '❌',
         name: 'Croix',
         emoji: '❌',
         colorClass: 'symbol-cross'
@@ -824,64 +807,6 @@
     const difficultyInfo = document.getElementById('difficultyInfo');
     const speedIndicator = document.getElementById('speedIndicator');
 
-    // Système audio
-    function initAudioContext() {
-      try {
-        if (!audioContext) {
-          audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (audioContext.state === 'suspended') {
-          audioContext.resume();
-        }
-        return audioContext;
-      } catch (e) {
-        return null;
-      }
-    }
-
-    function createSound(frequency, duration, type = 'sine', volume = 0.15) {
-      const context = initAudioContext();
-      if (!context) return;
-
-      try {
-        const oscillator = context.createOscillator();
-        const gainNode = context.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(context.destination);
-        
-        oscillator.frequency.value = frequency;
-        oscillator.type = type;
-        
-        gainNode.gain.setValueAtTime(volume, context.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, context.currentTime + duration);
-        
-        oscillator.start(context.currentTime);
-        oscillator.stop(context.currentTime + duration);
-      } catch (e) {
-        // Silence en cas d'erreur
-      }
-    }
-
-    function playSpinSound() {
-      createSound(600, 0.1, 'square');
-    }
-
-    function playClickSound() {
-      createSound(300, 0.05, 'square');
-    }
-
-    function playWinSound() {
-      createSound(800, 0.3, 'sine');
-      setTimeout(() => createSound(1000, 0.3, 'sine'), 300);
-      setTimeout(() => createSound(1200, 0.5, 'sine'), 600);
-    }
-
-    function playBonusSound() {
-      createSound(1000, 0.2, 'sine');
-      setTimeout(() => createSound(1200, 0.2, 'sine'), 100);
-    }
-
     // Initialisation du jeu
     function initGame() {
       attempts = 0;
@@ -897,7 +822,6 @@
       spinBtn.disabled = false;
       removeWinClasses();
       updateJackpotDisplay();
-      playClickSound();
     }
 
     // Mettre à jour les statistiques
@@ -937,15 +861,7 @@
         symbolElement.id = `symbol${index + 1}`;
         
         const symbolData = symbolTypes[symbolIndex];
-        if (symbolData.image) {
-          const img = document.createElement('img');
-          img.src = symbolData.image;
-          img.alt = symbolData.alt;
-          img.className = 'symbol-image';
-          symbolElement.appendChild(img);
-        } else {
-          symbolElement.textContent = symbolData.emoji;
-        }
+        symbolElement.textContent = symbolData.emoji;
         
         lockContainer.appendChild(symbolElement);
       });
@@ -987,17 +903,15 @@
       return true;
     }
 
-    // Gérer le bonus de roses
+    // Gérer le bonus de roses - CORRECTION ICI
     function handleRoseBonus() {
       bonusCounter++;
       
+      // Ajouter une rose seulement tous les 4 tours
       if (bonusCounter % 4 === 0) {
-        const rosesEarned = Math.floor(attempts / 100) + 1; // Au moins 1 rose, plus si beaucoup de tours
-        rosesCount += rosesEarned;
-        jackpotAmount += rosesEarned;
-        
-        playBonusSound();
-        message.textContent = `🎉 Bonus ! +${rosesEarned} rose(s) ajoutée(s) au jackpot !`;
+        rosesCount += 1;
+        jackpotAmount += 1;
+        message.textContent = `🌹 +1 rose ajoutée au jackpot !`;
         
         updateStats();
         updateJackpotDisplay();
@@ -1023,7 +937,6 @@
         const spinIntervalId = setInterval(() => {
           symbols[index] = getRandomSymbol();
           updateSingleSymbol(index);
-          if (spins % 2 === 0) playSpinSound();
           spins++;
           
           if (spins >= maxSpins) {
@@ -1046,18 +959,7 @@
       
       const symbolData = symbolTypes[symbols[index]];
       symbolElement.classList.add(symbolData.colorClass);
-      
-      symbolElement.innerHTML = '';
-      
-      if (symbolData.image) {
-        const img = document.createElement('img');
-        img.src = symbolData.image;
-        img.alt = symbolData.alt;
-        img.className = 'symbol-image';
-        symbolElement.appendChild(img);
-      } else {
-        symbolElement.textContent = symbolData.emoji;
-      }
+      symbolElement.textContent = symbolData.emoji;
     }
 
     // Basculer le mode accéléré
@@ -1129,7 +1031,7 @@
         
         attempts++;
         
-        // Gérer le bonus de roses
+        // Gérer le bonus de roses - CORRECTION ICI
         handleRoseBonus();
         updateStats();
         
@@ -1161,7 +1063,6 @@
       winAnimationActive = true;
       const winningSymbol = symbolTypes[lastWinningSymbol];
       message.textContent = `🎉 JACKPOT ! Vous avez aligné 6 ${winningSymbol.name}s ! 🎉`;
-      playWinSound();
       
       for (let i = 0; i < currentDifficulty; i++) {
         setTimeout(() => {
@@ -1196,7 +1097,6 @@
       document.getElementById(`mode${mode}`).classList.add('active');
       
       spinBtn.textContent = `Tourner (${mode.toLocaleString()} tour${mode > 1 ? 's' : ''})`;
-      playClickSound();
     }
 
     // Événements
