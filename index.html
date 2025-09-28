@@ -903,7 +903,7 @@
       return true;
     }
 
-    // Gérer le bonus de roses - CORRECTION ICI
+    // Gérer le bonus de roses
     function handleRoseBonus() {
       bonusCounter++;
       
@@ -1007,7 +1007,7 @@
       }, 7000);
     }
 
-    // Tourner tous les symboles
+    // Tourner tous les symboles avec la nouvelle logique séquentielle
     async function spinAllSymbols() {
       if (isSpinning) return;
       
@@ -1016,26 +1016,32 @@
       message.textContent = "Les rouleaux tournent...";
       
       for (let coup = 0; coup < attackMode; coup++) {
-        const spinPromises = [];
-        for (let i = 0; i < currentDifficulty; i++) {
-          if (isFastMode) {
-            spinPromises.push(spinSymbol(i));
-          } else {
-            await spinSymbol(i);
-          }
-        }
+        let canWin = true;
+        let firstSymbol = null;
         
-        if (isFastMode && spinPromises.length > 0) {
-          await Promise.all(spinPromises);
+        // Faire tourner les symboles un par un et s'arrêter dès qu'il n'y a plus de chance
+        for (let i = 0; i < currentDifficulty && canWin; i++) {
+          await spinSymbol(i);
+          
+          if (i === 0) {
+            // Premier symbole : on garde sa valeur comme référence
+            firstSymbol = symbols[0];
+          } else {
+            // Symboles suivants : vérifier s'ils sont identiques au premier
+            if (symbols[i] !== firstSymbol) {
+              canWin = false;
+              message.textContent = `Pas de chance... Symbole ${i + 1} différent !`;
+            }
+          }
         }
         
         attempts++;
         
-        // Gérer le bonus de roses - CORRECTION ICI
+        // Gérer le bonus de roses
         handleRoseBonus();
         updateStats();
         
-        if (checkWin()) {
+        if (canWin && checkWin()) {
           await winGame();
           break;
         } else if (coup < attackMode - 1) {
