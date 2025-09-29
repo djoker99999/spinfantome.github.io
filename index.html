@@ -686,7 +686,7 @@
       <div class="jackpot-info" id="jackpotInfo">Jackpot visible à partir de 1000 roses</div>
     </div>
 
-    <div class="difficulty-info" id="difficultyInfo">Objectif : Aligner 6 symboles identiques ! (0.032% de chances)</div>
+    <div class="difficulty-info" id="difficultyInfo">Objectif : Aligner 5 symboles identiques ! (0.032% de chances)</div>
     
     <div class="lock-body">
       <div class="lock-shackle"></div>
@@ -701,7 +701,7 @@
       <button id="mode10" class="attack-mode-btn">10 tours</button>
       <button id="mode30" class="attack-mode-btn">30 tours</button>
       <button id="mode100" class="attack-mode-btn">100 tours</button>
-      <button id="mode10000" class="attack-mode-btn">10,000 tours</button>
+      <button id="mode500" class="attack-mode-btn">500 tours</button>
     </div>
 
     <!-- STATISTIQUES -->
@@ -726,11 +726,11 @@
       <button id="resetBtn">Nouvelle partie</button>
     </div>
 
-    <div id="message">Prêt à jouer ? Alignez 6 symboles identiques pour remporter le jackpot !</div>
+    <div id="message">Prêt à jouer ? Alignez 5 symboles identiques pour remporter le jackpot !</div>
 
     <div id="resultContainer" class="hidden result-box">
       <h3>🎉 JACKPOT GAGNÉ !</h3>
-      <p id="winMessage">Vous avez aligné les 6 symboles !</p>
+      <p id="winMessage">Vous avez aligné les 5 symboles !</p>
       <p id="attemptsResult">Nombre de tours : 0</p>
       <p id="winningSymbol">Symbole gagnant : </p>
       <p id="jackpotWin" class="jackpot-amount">+ 0 🌹</p>
@@ -746,7 +746,7 @@
     let isSpinning = false;
     let winAnimationActive = false;
     let attackMode = 1;
-    let currentDifficulty = 6; // Uniquement 6 symboles
+    let currentDifficulty = 5; // 5 symboles au lieu de 6
     let isFastMode = false;
     let lastWinningSymbol = null;
     let rosesCount = 0;
@@ -763,9 +763,10 @@
       },
       { 
         type: 'cross', 
-        name: 'Croix',
+        name: 'Logo',
         emoji: '❌',
-        colorClass: 'symbol-cross'
+        colorClass: 'symbol-cross',
+        imageUrl: 'https://i.ibb.co/PZ9MQyW8/IMG-7290.png'
       },
       { 
         type: 'pumpkin', 
@@ -818,7 +819,7 @@
       updateStats();
       resultContainer.classList.add('hidden');
       updateDifficultyInfo();
-      message.textContent = `Prêt à jouer ? Alignez 6 symboles identiques pour remporter le jackpot !`;
+      message.textContent = `Prêt à jouer ? Alignez 5 symboles identiques pour remporter le jackpot !`;
       spinBtn.disabled = false;
       removeWinClasses();
       updateJackpotDisplay();
@@ -861,7 +862,18 @@
         symbolElement.id = `symbol${index + 1}`;
         
         const symbolData = symbolTypes[symbolIndex];
-        symbolElement.textContent = symbolData.emoji;
+        
+        // Utiliser l'image pour le symbole "cross" sinon l'emoji
+        if (symbolData.type === 'cross' && symbolData.imageUrl) {
+          const img = document.createElement('img');
+          img.src = symbolData.imageUrl;
+          img.alt = symbolData.name;
+          img.className = 'symbol-image';
+          symbolElement.innerHTML = '';
+          symbolElement.appendChild(img);
+        } else {
+          symbolElement.textContent = symbolData.emoji;
+        }
         
         lockContainer.appendChild(symbolElement);
       });
@@ -869,7 +881,7 @@
 
     // Mise à jour des informations de difficulté
     function updateDifficultyInfo() {
-      difficultyInfo.textContent = `Objectif : Aligner 6 symboles identiques ! (0.032% de chances - 1 sur 3,125)`;
+      difficultyInfo.textContent = `Objectif : Aligner 5 symboles identiques ! (0.032% de chances - 1 sur 3,125)`;
     }
 
     // Supprimer les classes de victoire
@@ -959,7 +971,18 @@
       
       const symbolData = symbolTypes[symbols[index]];
       symbolElement.classList.add(symbolData.colorClass);
-      symbolElement.textContent = symbolData.emoji;
+      
+      // Utiliser l'image pour le symbole "cross" sinon l'emoji
+      if (symbolData.type === 'cross' && symbolData.imageUrl) {
+        symbolElement.innerHTML = '';
+        const img = document.createElement('img');
+        img.src = symbolData.imageUrl;
+        img.alt = symbolData.name;
+        img.className = 'symbol-image';
+        symbolElement.appendChild(img);
+      } else {
+        symbolElement.textContent = symbolData.emoji;
+      }
     }
 
     // Basculer le mode accéléré
@@ -1068,7 +1091,7 @@
     async function winGame() {
       winAnimationActive = true;
       const winningSymbol = symbolTypes[lastWinningSymbol];
-      message.textContent = `🎉 JACKPOT ! Vous avez aligné 6 ${winningSymbol.name}s ! 🎉`;
+      message.textContent = `🎉 JACKPOT ! Vous avez aligné 5 ${winningSymbol.name}s ! 🎉`;
       
       for (let i = 0; i < currentDifficulty; i++) {
         setTimeout(() => {
@@ -1077,7 +1100,7 @@
         }, i * 200);
       }
       
-      winMessage.textContent = `Vous avez aligné 6 ${winningSymbol.name}s !`;
+      winMessage.textContent = `Vous avez aligné 5 ${winningSymbol.name}s !`;
       attemptsResult.textContent = `Nombre de tours : ${attempts}`;
       winningSymbolElement.textContent = `Symbole gagnant : ${winningSymbol.name} ${winningSymbol.emoji}`;
       jackpotWinElement.textContent = `+ ${jackpotAmount} 🌹`;
@@ -1115,7 +1138,7 @@
     document.getElementById("mode10").addEventListener("click", () => setAttackMode(10));
     document.getElementById("mode30").addEventListener("click", () => setAttackMode(30));
     document.getElementById("mode100").addEventListener("click", () => setAttackMode(100));
-    document.getElementById("mode10000").addEventListener("click", () => setAttackMode(10000));
+    document.getElementById("mode500").addEventListener("click", () => setAttackMode(500));
 
     // Raccourcis clavier
     document.addEventListener('keydown', (e) => {
@@ -1135,7 +1158,7 @@
       }
       
       if (e.key >= '1' && e.key <= '6') {
-        const modes = [1, 5, 10, 30, 100, 10000];
+        const modes = [1, 5, 10, 30, 100, 500];
         const index = parseInt(e.key) - 1;
         if (index < modes.length) {
           setAttackMode(modes[index]);
